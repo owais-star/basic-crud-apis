@@ -2,17 +2,25 @@ import express, { response } from "express";
 import { PostsModel } from "./models/postMoodel.mjs";
 import multer from "multer";
 import bodyParser from "body-parser";
-import cors from "cors"
-const PORT = process.env.PORT || 5000
+import geoip from "geoip-lite";
+import cors from "cors";
+const PORT = process.env.PORT || 5000;
 import mongoose from "mongoose";
 
 const app = express();
 const upload = multer();
 
-app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:5001", "http://192.168.0.107:3000", "https://nextjs-demo-app-umber.vercel.app"],
-  credentials: true
-}))
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5001",
+      "http://192.168.0.107:3000",
+      "https://nextjs-demo-app-umber.vercel.app",
+    ],
+    credentials: true,
+  })
+);
 app.use(upload.any());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -25,8 +33,39 @@ mongoose.connect("mongodb+srv://owais:dev@userdata.588jr.mongodb.net/nextJs", {
 
 app.get("/", (req, res) => {
   console.log("headers", req.headers);
-  console.log(req.connection.remoteAddress);
+  const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+  console.log("ip Address>>>: ", ip);
   res.status(200).send("hello world");
+});
+
+app.get("/videos", (req, res) => {
+  console.log("headers", req.headers);
+  const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+  console.log("ip Address>>>: ", ip);
+  var geo = geoip.lookup(ip);
+  console.log("user country data: ", geo);
+  if (geo.country == "PK") {
+    res.status(200).send({
+      status: true,
+      code: 200,
+      data: [
+        {
+          videoId: "khdshfios88dsa",
+        },
+        {
+          videoId: "khdshfios324df",
+        },
+        {
+          videoId: "khdshf3fd553asf",
+        },
+      ],
+    });
+  } else{
+    res.status(403).send({
+      status: "Un Authenticated",
+      code: 403
+    });
+  }
 });
 
 app.get("/api/getposts", (req, res) => {
